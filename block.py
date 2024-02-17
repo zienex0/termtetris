@@ -116,7 +116,9 @@ class Block:
         Check whether the block can legally rotate 90 degrees clockwise
         """
         shape = np.rot90(self.block_form)
-        if self.is_in_bounds(block_form=shape) and not self.is_on_surface(block_form=shape):
+        # change the logic to check if the block is in bounds and let it rotate when it is on surface
+        # then check if the rotated version collides with any block.
+        if self.is_in_bounds(block_form=shape) and not self.is_colliding(block_form=shape):
             return True
         return False
     
@@ -124,10 +126,25 @@ class Block:
         """
         Check if block is in the buonds of game matrix
         """
-        if self.position[0] + block_form.shape[0] < self.game_matrix.shape[0] and self.position[0] >= 0 and self.position[1] >= 0 and self.position[1] + block_form.shape[1] <= self.game_matrix.shape[1]:
+        if self.position[0] + block_form.shape[0] <= self.game_matrix.shape[0] and self.position[0] >= 0 and self.position[1] >= 0 and self.position[1] + block_form.shape[1] <= self.game_matrix.shape[1]:
             return True
         return False
-    
+
+    def is_colliding(self, block_form):
+        non_zero_points_loc = self.calculate_non_zero_points(block_form=block_form)
+        for point in non_zero_points_loc:
+            if self.game_matrix[self.position[0] + point[0], self.position[1] + point[1]] != 0:
+                return True
+        return False
+
+    def calculate_non_zero_points(self, block_form):
+        non_zero_points_loc = []
+        for row_index, row in enumerate(block_form):
+            for col_index in range(len(row)):
+                if block_form[row_index][col_index] != 0:
+                    non_zero_points_loc.append((row_index, col_index))
+        return non_zero_points_loc
+
     def rotate(self):
         """
         Rotate the block 90 degrees clockwise
